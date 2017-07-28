@@ -20,6 +20,6 @@ sim_data <- data.frame(
 g <- ggplot(data = sim_data) +
     geom_histogram(aes(x)) +
     geom_vline(xintercept = mu_d)
-g <- g + stat_function(fun = dnorm, size = 2)
+    
 
 print(g)
