@@ -7,5 +7,78 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(ggplot2)
+library(huxtable)
 ```
+
+# Overview
+
+In this article we will explore the `ToothGrowth` data that is included in the `datasets` package in R. We will show some information about what the data looks like and how the data is structured. From there we will define some questions that we would like to answer using hypothesis testing.
+
+# Summarizing the Data
+
+First we need to load the `datasets` library and then we can look at some of the basic properties of the `ToothGrowth` sample data and how the information is structured.
+
+```{r load_data}
+library(datasets)
+
+str(ToothGrowth)
+dim(ToothGrowth)
+head(ToothGrowth)
+```
+
+Next we can look at some basic analysis properties of the data to get some information about how the values are related.
+
+```{r data_summary}
+summary(ToothGrowth)
+
+grouped_data <- group_by(ToothGrowth, supp, dose)
+grouped_summay <- summarise(grouped_data,
+                            group_count=n(),
+                            group_mean=mean(len),
+                            group_med=median(len),
+                            group_sd=sd(len))
+
+as_hux(grouped_summay %>%
+           select("Supplement"=supp,
+                  "Dosage"=dose,
+                  "Count"=group_count,
+                  "Mean"=group_mean,
+                  "Median"=group_med,
+                  "Standard Deviation"=group_sd), 
+       add_colnames=TRUE) %>%
+    set_bold(1, everywhere, TRUE) %>%
+    set_all_borders(1)
+```
+
+What we can see here is that orange juice provides a greater impact on tooth growth compared to vitamin C alone. If we visualize the data we can see the same results.
+
+```{r data_plot}
+ggplot(data = ToothGrowth) +
+    geom_boxplot(aes(fill = factor(dose), x = factor(dose), y = len)) +
+    facet_grid(.~supp) +
+    ggtitle("Tooth Growth by Supplement and Dose") +
+    xlab("Dosage") +
+    ylab("Tooth Growth") +
+    theme(legend.position="none",
+          plot.title = element_text(hjust = 0.5))
+```
+
+# Confidence Testing
+
+From the basic analysis we can now see that we now have a hypothesis statement to prove. Is it true that Orange Juice (`OJ`) provides a greater impact on tooth growth than a Viatamin C (`VC`) supplement alone. We will test this hypothesis by both supplement and dosage to see if our hypothesis is true. We will assume a 95% confidence interval when performing all thests.
+
+## Testing by Supplement
+
+We will begin our tests by supplement. In this test we will compare the tooth length by supplement used.
+
+```{r supp_testing}
+t.test(len ~ supp, data = ToothGrowth, paired = FALSE, var.equal = FALSE)
+```
+
+From these results we do not reject the null hypothesis since 0 is included between the upper and lower confidence levels `[-0.1710156  7.5710156]` and the p-value from the test is higher than the expected p-value.
+
+## Testing by Dosage
 
