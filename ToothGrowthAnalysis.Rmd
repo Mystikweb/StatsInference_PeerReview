@@ -1,7 +1,7 @@
 ---
 title: "Tooth Growth Data Analysis"
 author: "Christopher Hair"
-date: "July 28, 2017"
+date: "September 15, 2017"
 output: html_document
 ---
 
@@ -15,31 +15,32 @@ library(huxtable)
 
 # Overview
 
-In this article we will explore the `ToothGrowth` data that is included in the `datasets` package in R. We will show some information about what the data looks like and how the data is structured. From there we will define some questions that we would like to answer using hypothesis testing.
+In this article we will explore the `ToothGrowth` data that is included in the `datasets` package in R. This dataset is used to show the effects of Vitamin C on Tooth Growth in Guinea Pigs. We will show some information about what the data looks like and how the data is structured. We can then look at some basic analysis on comparing the type of supplement and dosage of each supplement. Using this analysis we will attempt to draw a hypothesis to compare which component supplement and dosage has the larger impact on the tooth growth.
 
 # Summarizing the Data
 
-First we need to load the `datasets` library and then we can look at some of the basic properties of the `ToothGrowth` sample data and how the information is structured.
+First we need to load the `datasets` library and then we can look at some of the basic properties of the `ToothGrowth` sample data and how the information is structured as well as some introduction into the types of values we are are going to evaluate in our testing.
 
 ```{r load_data}
 library(datasets)
 
 str(ToothGrowth)
-dim(ToothGrowth)
 head(ToothGrowth)
+summary(ToothGrowth)
 ```
 
-Next we can look at some basic analysis properties of the data to get some information about how the values are related.
+# Basic Analysis
 
-```{r data_summary}
-summary(ToothGrowth)
+In this section we will go through our two major points of 
 
-grouped_data <- group_by(ToothGrowth, supp, dose)
-grouped_summay <- summarise(grouped_data,
-                            group_count=n(),
-                            group_mean=mean(len),
-                            group_med=median(len),
-                            group_sd=sd(len))
+## 
+
+```{r supp_summary}
+grouped_summay <- group_by(ToothGrowth, supp, dose) %>%
+    summarise(group_count=n(),
+              group_mean=mean(len),
+              group_med=median(len),
+              group_sd=sd(len))
 
 as_hux(grouped_summay %>%
            select("Supplement"=supp,
@@ -53,32 +54,32 @@ as_hux(grouped_summay %>%
     set_all_borders(1)
 ```
 
-What we can see here is that orange juice provides a greater impact on tooth growth compared to vitamin C alone. If we visualize the data we can see the same results.
+What we can see here is that orange juice provides a slightly larger average impact on tooth growth compared to vitamin C alone. If we visualize the data we can see similar results.
 
 ```{r data_plot}
 ggplot(data = ToothGrowth) +
     geom_boxplot(aes(fill = factor(dose), x = factor(dose), y = len)) +
     facet_grid(.~supp) +
-    ggtitle("Tooth Growth by Supplement and Dose") +
+    ggtitle("Tooth Growth by Supplement and Dosage") +
     xlab("Dosage") +
     ylab("Tooth Growth") +
     theme(legend.position="none",
           plot.title = element_text(hjust = 0.5))
+
+ggplot(data = ToothGrowth) +
+    geom_boxplot(aes(fill = supp, x = supp, y = len)) +
+    facet_grid(.~dose) +
+    ggtitle("Tooth Growth by Dosage and Supplement") +
+    xlab("Supplement") +
+    ylab("Tooth Growth") +
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5))
 ```
 
-# Confidence Testing
+# Hypothesis Testing
 
-From the basic analysis we can now see that we now have a hypothesis statement to prove. Is it true that Orange Juice (`OJ`) provides a greater impact on tooth growth than a Viatamin C (`VC`) supplement alone. We will test this hypothesis by both supplement and dosage to see if our hypothesis is true. We will assume a 95% confidence interval when performing all thests.
+From the basic analysis we can now see that we now have the following hypothesis statement to work with.
 
-## Testing by Supplement
-
-We will begin our tests by supplement. In this test we will compare the tooth length by supplement used.
-
-```{r supp_testing}
-t.test(len ~ supp, data = ToothGrowth, paired = FALSE, var.equal = FALSE)
-```
-
-From these results we do not reject the null hypothesis since 0 is included between the upper and lower confidence levels `[-0.1710156  7.5710156]` and the p-value from the test is higher than the expected p-value.
-
-## Testing by Dosage
+- **H~0~** Orange Juice has a greater impact on tooth growth in guinea pigs than Vitamin C
+- **H~a~** Orange Juise has a lesser impact on tooth growth in guinea pigs than Viatmin C
 

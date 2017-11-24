@@ -28,3 +28,9 @@ library(datasets)
 
 supplement_test <- t.test(len ~ supp, data = ToothGrowth, paired = FALSE, var.equal = FALSE)
 print(supplement_test)
+
+# g <- ggplot(data = ToothGrowth) +
+#     geom_histogram(aes(x=factor(dose))) +
+#     facet_grid(.~supp)
+# 
+# print(g)
